@@ -26,7 +26,7 @@ SECRET_KEY = 'l4(g5593fp4enfcx!q8h9kn436lr6k+r)wxzah0q8p1os!xne9'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+#STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 
 # Application definition
@@ -121,7 +121,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'), )
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'

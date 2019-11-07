@@ -1,4 +1,4 @@
-#!/home/vaibhav/Documents/blog/venv/bin/python
+#!/home/vaibhav/Desktop/NewBlog/blog/venv/bin/python
 
 import sys
 import getopt
