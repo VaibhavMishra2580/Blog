@@ -19,6 +19,9 @@ class Team(models.Model):
     name = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
     photo = models.ImageField(null=False, blank=False, upload_to='media/')
     member_about = models.CharField(max_length=40, null=True, blank=True)
+    class Meta:
+        default_permissions = ('view')
+                       
 
     def __str__(self):
         return str(self.name)
@@ -43,12 +46,27 @@ class BlogCategory(models.Model):
 
 
 class BlogDetails(models.Model):
-    technology = models.ForeignKey(BlogCategory, on_delete=models.CASCADE, null=False, blank=False)
-    short_details = models.CharField(max_length=40, null=False, blank=False)
-    description = RichTextField(null=False, blank=False)
-    blog_details_photo = models.ImageField(null=True, blank=True, upload_to='media/')
-    written_by = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
-    comments = models.TextField()
+    technology = models.ForeignKey(BlogCategory, on_delete=models.CASCADE, null=False, blank=False, verbose_name="Technology")
+    short_details = models.CharField(max_length=40, null=False, blank=False, verbose_name="Short Details")
+    description = RichTextField(null=False, blank=False, verbose_name="Description")
+    blog_details_photo = models.ImageField(null=True, blank=True, upload_to='Attachments/', verbose_name="Code Snippet")
+    written_by = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False, verbose_name="Written By")
+    created_at = models.DateTimeField(auto_now_add=True,null=True)
+    approved = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.short_details
+        return str(self.technology)+ "-->" + str(self.short_details)
+
+
+class BlogComments(models.Model):
+    blog_id = models.ForeignKey(BlogDetails, on_delete=models.CASCADE)
+    comments = models.TextField(null=True, blank=True)
+    like = models.IntegerField(default=0)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False, verbose_name="User")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    liked_user = models.TextField(default="string")
+
+    def __str__(self):
+        return str(self.comments)
+
+

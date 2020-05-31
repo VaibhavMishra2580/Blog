@@ -14,7 +14,11 @@ import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+'''
+from django.conf.locale.en import formats as en_formats
+en_formats.DATETIME_FORMAT =  '%d/%m/%Y %H:%M:%S'
+'''
+DATETIME_FORMAT="%d-%m-%Y%H:%M:%S"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -40,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'records',
     'ckeditor',
+    'crispy_forms',
+    'rest_framework'
 
 ]
 
@@ -109,21 +115,46 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Calcutta'
 
 USE_I18N = True
 
 USE_L10N = True
 
 USE_TZ = True
+LOGIN_REDIRECT_URL = '/dashboard/'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
-STATIC_URL = '/static/'
+#STATIC_URL = '/static/'
 #STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'), )
+#STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'), )
+
+#STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.normpath(os.path.join(BASE_DIR, "static")),
+)
+
+#STATIC_ROOT = '/home/vaibhav/Documents/blog/static'
+
+STATIC_URL = '/static/'
+#STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 CKEDITOR_BASEPATH = "/static/ckeditor/ckeditor/"
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}

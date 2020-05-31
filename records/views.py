@@ -1,154 +1,164 @@
-from django.shortcuts import render
-from records.models import *
+from django.shortcuts import render, redirect
+from .models import *
 from django.views.generic import View
-from records.forms import BlogDetailsForm
+from .forms import BlogDetailsForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.contrib.auth.models import User
+from django.contrib import auth
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import UserCreationForm
+from django.http import JsonResponse
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
-
-# Create your views here.
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            return redirect('records:dashboard')
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/signup.html', {'form': form})
 
 
 def dashboard(request):
-    details = Details.objects.filter(id=1).values('about','email', 'contact')
+    details = Details.objects.filter(id=1).values('about', 'email', 'contact')
+#file1= BlogDetails.objects.filter(id=23)
+#   file1=file1.blog_details_photo.name
+#   print(file1)
+    s = str(request.user)
+    if s == 'AnonymousUser':
+
+        user = False
+
+    else:
+        user = User.objects.get(username=request.user.username)
 
     context = {
-        'details': details
+        'details': details,
+        'user': user
     }
     return render(request, 'index.html', context)
 
 
-def python(request):
-    blog_details_python = BlogDetails.objects.filter(technology=1).values('id', 'technology', 'short_details',
-                                                                          'description',
-                                                                          'blog_details_photo',
-                                                                          'written_by')
+def technologies(request, technology_id):
+    s = str(request.user)
+
+    if s == 'AnonymousUser':
+
+        user = False
+
+    else:
+        user = User.objects.get(username=request.user.username)
+    technology_details = BlogDetails.objects.filter(technology=technology_id, approved=True).values('id',
+                                                                                                    'technology__name',
+                                                                                                    'short_details',
+                                                                                                    'written_by__username',
+                                                                                                    'created_at').order_by(
+        '-id')
+
     details = Details.objects.filter(id=1).values('about', 'email', 'contact')
-
-    blog_detail = BlogDetails.objects.filter(technology=1, pk=1).values('technology', 'short_details', 'description',
-                                                                        'blog_details_photo',
-                                                                        'written_by')
-
-    return render(request, 'python.html',
-                  {'blog_details_python': blog_details_python, 'bbb': blog_detail, 'details': details})
+    return render(request, 'blogs/technology.html',
+                  {'technology_details': technology_details, 'details': details, 'user': user})
 
 
-def blog_python(request, blog_id):
-    blog_detail = BlogDetails.objects.filter(technology=1, pk=blog_id).values('id', 'technology', 'short_details',
-                                                                              'description',
-                                                                              'blog_details_photo',
-                                                                              'written_by')
+def blog_details(request, name, blog_id):
     details = Details.objects.filter(id=1).values('about', 'email', 'contact')
+    s = str(request.user)
 
-    return render(request, 'blog_python.html', {'blog_details': blog_detail, 'details': details})
+    if s == 'AnonymousUser':
 
+        user = False
 
-def java(request):
-    blog_details_java = BlogDetails.objects.filter(technology=6).values('technology', 'short_details', 'description',
-                                                                        'blog_details_photo',
-                                                                        'written_by')
-    details = Details.objects.filter(id=1).values('about','email',  'contact')
+    else:
+        user = User.objects.get(username=request.user.username)
 
-    return render(request, 'Java.html', {'blog_details_java': blog_details_java, 'details': details})
+    blog_details = BlogDetails.objects.filter(technology__name=name, pk=blog_id).values('id','technology__name',
+                                                                                        'short_details', 'description',
+                                                                                        'blog_details_photo',
+                                                                                        'written_by')
 
+    comment = BlogComments.objects.filter(blog_id=blog_id).order_by('-id').values('id', 'comments', 'user__username',
+                                                                                  'created_at', 'like')[:15]
 
-def blog_java(request, blog_id):
-    blog_detail = BlogDetails.objects.filter(technology=6, pk=blog_id).values('id', 'technology', 'short_details',
-                                                                              'description',
-                                                                              'blog_details_photo',
-                                                                              'written_by')
-    details = Details.objects.filter(id=1).values('about','email',  'contact')
-
-    return render(request, 'blog_java.html', {'blog_details': blog_detail, 'details': details})
+    return render(request, 'blogs/blog_details.html',
+                  {'blog_details': blog_details, 'details': details, 'comment': comment, 'user': user})
 
 
-def django(request):
-    blog_details_django = BlogDetails.objects.filter(technology=5).values('technology', 'short_details', 'description',
-                                                                          'blog_details_photo',
-                                                                          'written_by')
-    details = Details.objects.filter(id=1).values('about','email',  'contact')
+@method_decorator(login_required, name='dispatch')
+class BlogCreation(View):
+    def get(self, request):
+        form = BlogDetailsForm()
+        return render(request, 'forms/addForm.html', {"form": form
+                                                      })
 
-    return render(request, 'Django.html', {'blog_details_django': blog_details_django, 'details': details})
+    def post(self, request):
+        post = request.POST.copy()
+        user = User.objects.get(username=request.user.username)
+        request.POST = post
 
+        form = BlogDetailsForm(request.POST, request.FILES)
 
-def blog_django(request, blog_id):
-    blog_detail = BlogDetails.objects.filter(technology=5, pk=blog_id).values('id', 'technology', 'short_details',
-                                                                              'description',
-                                                                              'blog_details_photo',
-                                                                              'written_by')
-    details = Details.objects.filter(id=1).values('about','email',  'contact')
+        if form.is_valid():
+            new = form.save(commit=False)
+            new.written_by= user
 
-    return render(request, 'blog_django.html', {'blog_details': blog_detail, 'details': details})
+            new.save()
 
+            return HttpResponseRedirect(reverse('records:dashboard'))
+        else:
 
-def javascript(request):
-    blog_details_javascript = BlogDetails.objects.filter(technology=3).values('technology', 'short_details',
-                                                                              'description',
-                                                                              'blog_details_photo',
-                                                                              'written_by')
-    details = Details.objects.filter(id=1).values('about', 'email', 'contact')
-
-    return render(request, 'JavaScript.html', {'blog_details_javascript': blog_details_javascript, 'details': details})
+            return render(request, 'forms/addForm.html',
+                          {"form": form, })
 
 
-def blog_js(request, blog_id):
-    blog_detail = BlogDetails.objects.filter(technology=3, pk=blog_id).values('id', 'technology', 'short_details',
-                                                                              'description',
-                                                                              'blog_details_photo',
-                                                                              'written_by')
-    details = Details.objects.filter(id=1).values('about','email',  'contact')
-
-    return render(request, 'blog_js.html', {'blog_details': blog_detail, 'details': details})
+def logout(request):
+    auth.logout(request)
+    return HttpResponseRedirect(reverse('records:dashboard'))
 
 
-def machine_learning(request):
-    blog_details_ml = BlogDetails.objects.filter(technology=7).values('technology', 'short_details', 'description',
-                                                                      'blog_details_photo',
-                                                                      'written_by')
-    details = Details.objects.filter(id=1).values('about','email',  'contact')
+@login_required
+def save_comment(request, blog_id, comment):
 
-    return render(request, 'MachineLearning.html', {'blog_details_ml': blog_details_ml, 'details': details})
+        user = User.objects.get(username=request.user.username)
+        pki = BlogComments.objects.create(blog_id=BlogDetails.objects.get(pk=blog_id), comments=comment, user=user)
+        result = list(BlogComments.objects.filter(pk=pki.id).order_by('comments').values('id', 'comments', 'like',
+                                                                                         'user__username',
+                                                                                         'created_at'))
 
+        result[0]['created_at'] = '0 min ago'
 
-def blog_ml(request, blog_id):
-    blog_detail = BlogDetails.objects.filter(technology=7, pk=blog_id).values('id', 'technology', 'short_details',
-                                                                              'description',
-                                                                              'blog_details_photo',
-                                                                              'written_by')
-    details = Details.objects.filter(id=1).values('about','email',  'contact')
-
-    return render(request, 'blog_ml.html', {'blog_details': blog_detail, 'details': details})
+        return JsonResponse(result, safe=False)
 
 
-def linux(request):
-    blog_details_linux = BlogDetails.objects.filter(technology=4).values('technology', 'short_details', 'description',
-                                                                         'blog_details_photo',
-                                                                         'written_by')
-    details = Details.objects.filter(id=1).values('about','email',  'contact')
+@login_required
+def increase_like(request, comm_id):
+    like = BlogComments.objects.get(id=comm_id)
 
-    return render(request, 'linux.html', {'blog_details_linux': blog_details_linux, 'details': details})
+    if request.user.username in like.liked_user:
+        like_no = BlogComments.objects.get(id=comm_id)
+        print(like_no.like)
+        like_count = like_no.like - 1
+        user = like_no.liked_user.replace(request.user.username,"")
+        like_no.like = like_count
+        like_no.liked_user = user
+        like_no.save()
+        return JsonResponse(like_count, safe=False)
 
-
-def blog_linux(request, blog_id):
-    blog_detail = BlogDetails.objects.filter(technology=4, pk=blog_id).values('id', 'technology', 'short_details',
-                                                                              'description',
-                                                                              'blog_details_photo',
-                                                                              'written_by')
-    details = Details.objects.filter(id=1).values('about','email',  'contact')
-
-    return render(request, 'blog_linux.html', {'blog_details': blog_detail, 'details': details})
-
-#
-# class AddBlog(View):
-#
-#     def get(self, request):
-#         form = BlogDetailsForm()
-#         return render(request, 'addBlog.html', {"form": form})
-#
-#     def post(self, request):
-#         form = BlogDetailsForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             form.save()
-#         return HttpResponseRedirect(reverse('records:dashboard'))
-
-
+    else:
+        like_no = BlogComments.objects.get(id=comm_id)
+        print(like_no.like)
+        users = like_no.liked_user
+        like_count = like_no.like + 1
+        like_no.like = like_count
+        like_no.liked_user = users+","+request.user.username
+        like_no.save()
+        return JsonResponse(like_count, safe=False)
