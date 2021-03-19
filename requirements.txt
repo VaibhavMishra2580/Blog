@@ -15,7 +15,7 @@ django-polymorphic==2.0.3
 django-queryset-csv==1.0.1
 django-rest-auth==0.9.3
 django-select2==7.0.5
-djangorestframework==3.9.2
+djangorestframework==3.11.2
 djangorestframework-simplejwt==4.1.0
 djangorestframework-stubs==0.4.2
 docutils==0.14
