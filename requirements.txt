@@ -129,7 +129,7 @@ requests==2.22.0
 requests-oauthlib==1.2.0
 roman==2.0.0
 rq==1.0
-rsa==3.2.3
+rsa==4.1
 s3transfer==0.2.0
 scapy==2.4.3
 sessioninstaller==0.0.0
