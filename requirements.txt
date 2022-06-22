@@ -71,7 +71,7 @@ mistune==0.8.4
 msrest==0.6.11
 nbconvert==5.5.0
 nbformat==4.4.0
-numpy==1.17.0
+numpy==1.22.0
 oauthlib==3.0.1
 odfpy==1.4.0
 onboard==1.2.0
